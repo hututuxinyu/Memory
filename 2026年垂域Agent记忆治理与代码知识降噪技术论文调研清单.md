@@ -39,3 +39,52 @@
 \[9\] Microsoft Research\. Governing Evolving Memory in LLM Agents \(SSGM Framework\)\[J\]\. arXiv preprint arXiv:26xxxx, 2026\.
 
 > （注：部分内容由豆包工作 AI 生成）
+
+---
+
+## 四、真实论文精读与工业落地调研（2026-10-12 补充）
+
+> 以下5篇为经过arXiv全文验证、逐篇精读洞察分析后的真实论文，已生成独立洞察报告（见 `paper/` 目录），并完成工业落地情况调研。
+
+### 4.1 精读论文清单
+
+| 序号 | 论文标题 | arXiv | 会议 | 作者单位 | 洞察报告 |
+|------|---------|-------|------|---------|---------|
+| 1 | Adaptive Memory Admission Control for LLM Agents (A-MAC) | [2603.04549](https://arxiv.org/abs/2603.04549) | cs.AI 2026 | Workday AI | `paper/1. A-MAC_Paper_Insight_Report.md` |
+| 2 | Evoking User Memory: Personalizing LLM via Recollection-Familiarity Adaptive Retrieval (RF-Mem) | [2603.09250](https://arxiv.org/abs/2603.09250) | ICLR 2026 | 大连理工/港城大/**华为** | `paper/2. RF-Mem_Paper_Insight_Report.md` |
+| 3 | Organize then Retrieve: Hierarchical Memory Navigation for Efficient Agents (HORMA) | [2606.11680](https://arxiv.org/abs/2606.11680) | cs.AI 2026 | Duke Univ./**Snowflake AI** | `paper/3. HORMA_Paper_Insight_Report.md` |
+| 4 | StructMem: Structured Memory for Long-Horizon Behavior in LLMs | [2604.21748](https://arxiv.org/abs/2604.21748) | cs.CL 2026 | 浙大/**蚂蚁集团** | `paper/4. StructMem_Paper_Insight_Report.md` |
+| 5 | LatticeMind: A Conflict-Aware Memory Primitive for Multi-Agent Systems | [2608.08236](https://arxiv.org/abs/2608.08236) | cs.AI 2026 | 中科大/牛津/上海AI Lab | `paper/5. LatticeMind_Paper_Insight_Report.md` |
+
+### 4.2 工业落地情况总览
+
+| 论文 | 大厂关联 | GitHub Stars / Forks | 落地状态 | 代码地址 |
+|------|---------|---------------------|---------|---------|
+| **A-MAC** | Workday AI | 7 / 0 | ❌ 企业研究论文，个人仓库，无生产部署迹象 | [GitHub](https://github.com/GuilinDev/Adaptive_Memory_Admission_Control_LLM_Agents) |
+| **RF-Mem** | **华为** | 12 / 2 | ⚠️ 华为联署，但代码停更(最后push 2026-02)，未见公开生产部署 | [GitHub](https://github.com/Zhang-Yingyi/ICLR2026_RF-Mem) |
+| **HORMA** | **Snowflake AI** | 无公开repo | ⚠️ Snowflake联署，未开源，可能内部探索 | 无 |
+| **StructMem** | **蚂蚁集团** + zjunlp | **1188 / 116** | ✅ 最接近落地——zjunlp/LightMem活跃框架，持续更新至2026-09 | [GitHub](https://github.com/zjunlp/LightMem) |
+| **LatticeMind** | 纯学术 | 无repo | ❌ 纯学术研究，无大厂关联 | 无 |
+
+### 4.3 关键发现
+
+**StructMem 落地程度最高**：zjunlp/LightMem 仓库 1188 stars、116 forks、18 subscribers、持续更新至2026年9月，topics涵盖 `long-term-memory`/`memory-management`/`personalization`/`rag`，是浙大NLP实验室的活跃工程项目。蚂蚁集团作为联署作者，其支付宝/网商银行等场景天然需要长期对话记忆。这是5篇中最接近生产级落地的。
+
+**RF-Mem 和 HORMA 有大厂背书但未落地**：华为和 Snowflake 作为联署机构，论文方向与各自业务相关（华为Cloud AI、Snowflake数据平台），但 GitHub 活跃度低、代码停更，更像企业研究院的学术探索而非产品化投入。
+
+**A-MAC 和 LatticeMind 基本停留学术阶段**：A-MAC 虽有 Workday AI 背景但仅7 stars、个人仓库；LatticeMind 完全无大厂关联。
+
+### 4.4 这些论文引用的"已落地"记忆系统
+
+真正有大厂/创业公司生产落地的，反而是这5篇论文作为 **baseline 对比**的系统：
+
+| 产品 | 公司/团队 | GitHub Stars | 落地状态 | 说明 |
+|-------|---------|-------------|---------|------|
+| **Mem0** (mem0ai) | Mem0 startup | ~20k+ stars | ✅ 生产级记忆层 | 多企业使用，被5篇论文中4篇作为baseline |
+| **Zep** (getzep/graphiti) | Zep startup | ~3k+ stars | ✅ 时序知识图谱SaaS | 商业产品，被HORMA/StructMem作为baseline |
+| **Letta/MemGPT** | Letta startup | ~15k+ stars | ✅ OS式记忆管理产品 | 被A-MAC/RF-Mem作为baseline |
+| **A-Mem** | 学术(NeurIPS 2025) | ~1k+ stars | ⚠️ 学术但被广泛引用 | 被多篇论文作为SOTA baseline |
+
+### 4.5 结论
+
+这5篇论文本身都**尚未有明确的大厂生产落地**。StructMem（蚂蚁+zjunlp，1188 stars）最接近工程化；RF-Mem（华为）和HORMA（Snowflake）有大厂背书但停留在研究阶段。真正在大厂/创业公司生产环境部署的记忆系统是它们作为 baseline 对标的 Mem0、Zep、Letta 等——这些才是当前 Agent 记忆领域的商业化先行者。这5篇论文更多是**推动学术前沿向工程可用靠拢**的研究工作，其技术贡献（五维准入控制、双过程检索、文件系统层级记忆、事件级绑定合并、冲突感知原语）为下一代生产级记忆系统提供了可借鉴的设计范式。
