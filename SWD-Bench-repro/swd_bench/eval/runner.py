@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from config import settings
 from swd_bench.eval import retrieval, metrics
+from swd_bench.llm_client import chat_complete, LLMError
 from swd_bench.stage3_references import (
     FunctionalityDescription, build_completion_question,
 )
@@ -25,6 +26,30 @@ class QAEntry:
     desc: FunctionalityDescription | None = None
 
 
+def _make_openai_client():
+    if not settings.llm_api_key:
+        return None
+    from types import SimpleNamespace
+    def complete(prompt: str) -> str:
+        return chat_complete(
+            messages=[{"role": "user", "content": prompt}],
+            model=settings.developer_models[0],
+            temperature=settings.developer_temperature,
+            max_tokens=512, timeout=90,
+        )
+    return SimpleNamespace(complete=complete)
+
+
+def _call_llm(client, prompt: str) -> str:
+    if client is None:
+        return ""
+    try:
+        return client.complete(prompt)
+    except LLMError as e:
+        print(f"  [warn] LLM 调用失败: {e}")
+        return ""
+
+
 def _answer_detection(client, doc_ctx: str, question: str) -> bool:
     prompt = f"Documentation context:\n{doc_ctx}\n\nQuestion:\n{question}\n\nAnswer True or False only."
     txt = _call_llm(client, prompt)
@@ -35,33 +60,14 @@ def _answer_localization(client, doc_ctx: str, question: str) -> list[str]:
     prompt = (f"Documentation context:\n{doc_ctx}\n\nQuestion:\n{question}\n\n"
               "List the file paths responsible, one per line. If none, output 'NONE'.")
     txt = _call_llm(client, prompt)
-    paths = [ln.strip() for ln in txt.splitlines() if ln.strip() and ln.strip() != "NONE"]
-    return paths
+    return [ln.strip() for ln in txt.splitlines()
+            if ln.strip() and ln.strip() != "NONE"]
 
 
 def _answer_completion(client, doc_ctx: str, question: str) -> list[str]:
     prompt = f"Documentation context:\n{doc_ctx}\n\n{question}\n\nList each filled detail, one per line."
     txt = _call_llm(client, prompt)
     return [ln.strip() for ln in txt.splitlines() if ln.strip()]
-
-
-def _call_llm(client, prompt: str) -> str:
-    if client is None:
-        return ""
-    return client.complete(prompt)
-
-
-def _make_openai_client():
-    if not settings.openai_api_key:
-        return None
-    from openai import OpenAI
-    cli = OpenAI(api_key=settings.openai_api_key)
-    cli.complete = lambda p: cli.chat.completions.create(
-        model=settings.developer_models[0],
-        temperature=settings.developer_temperature,
-        messages=[{"role": "user", "content": p}],
-    ).choices[0].message.content
-    return cli
 
 
 def evaluate(entries: list[QAEntry], doc_chunks: list[retrieval.Chunk],

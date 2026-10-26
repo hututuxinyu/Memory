@@ -45,14 +45,16 @@ SWEBENCH_REPOS: tuple[Repo, ...] = (
 @dataclass
 class Settings:
     github_token: str | None = field(default_factory=lambda: os.getenv("GITHUB_TOKEN"))
-    anthropic_api_key: str | None = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY"))
-    openai_api_key: str | None = field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
-    google_api_key: str | None = field(default_factory=lambda: os.getenv("GOOGLE_API_KEY"))
+    # 统一的 OpenAI 兼容 LLM 端点（默认指向本机 opencode 配置的 bailian/glm-5.2）
+    # 也可改指向 DeepSeek/Qwen 等任何 OpenAI 兼容服务
+    llm_base_url: str = field(default_factory=lambda: os.getenv(
+        "LLM_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"))
+    llm_api_key: str | None = field(default_factory=lambda: os.getenv("LLM_API_KEY"))
     data_dir: Path = field(default_factory=lambda: Path(os.getenv("DATA_DIR", "./data")))
-    # 功能描述生成模型 - 对齐原版 Claude-Sonnet-4（论文 §4.3）
-    desc_model: str = "claude-sonnet-4-20250514"
-    # "开发者"答题模型（论文 §4.3: GPT-4.1 + Gemini-2.5-Pro，温度 0.2，重复 3 次）
-    developer_models: tuple[str, ...] = ("gpt-4.1", "gemini-2.5-pro")
+    # 功能描述生成模型 - 默认用 GLM-5.2（用户建议替掉 Claude-Sonnet-4）
+    desc_model: str = field(default_factory=lambda: os.getenv("DESC_MODEL", "glm-5.2"))
+    # "开发者"答题模型 - 也走 GLM-5.2（论文用 GPT-4.1+Gemini，本复现用本机可用模型）
+    developer_models: tuple[str, ...] = ("glm-5.2",)
     developer_temperature: float = 0.2
     developer_n_repeats: int = 3
     # 评测子集规模（论文 §4.3 因成本抽 480 条；全集 4170 用于构造）
